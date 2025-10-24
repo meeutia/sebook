@@ -1,11 +1,11 @@
 package com.example.sebook.ui.theme.screens
 
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,32 +28,34 @@ import androidx.navigation.compose.rememberNavController
 import com.example.sebook.R
 import com.example.sebook.ui.theme.components.BottomNavBar
 import com.example.sebook.ui.theme.components.CustomButton
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.util.lerp
+import kotlin.math.absoluteValue
 
 
 @Composable
 fun Home() {
-    // Wrapper untuk preview; aplikasi akan menampilkan HomeContent melalui NavHost di AppRoot
+    // Wrapper untuk preview; aplikasi akan menampilkan HomeContent melalui NavHost di MainActivity
+    val previewNav = rememberNavController()
     Scaffold(
         bottomBar = {
-            BottomNavBar(navController = rememberNavController())
+            BottomNavBar(navController = previewNav)
         },
         content = { innerPadding ->
-            HomeContent(innerPadding)
+            HomeContent(innerPadding, previewNav)
         }
     )
 }
 
 
-// Isi konten scrollable dari halaman Home
 @Composable
-fun HomeContent(innerPadding: PaddingValues) {
-    var currentSlide by remember { mutableStateOf(0) }
-    val listState = rememberLazyListState()
-
-    // Update currentSlide ketika LazyRow digulir
-    LaunchedEffect(listState.firstVisibleItemIndex) {
-        currentSlide = listState.firstVisibleItemIndex
-    }
+fun HomeContent(innerPadding: PaddingValues, navController: NavHostController) {
+    val pagerState = rememberPagerState(
+        initialPage = 0,
+        pageCount = { 3 }
+    )
 
     Column(
         modifier = Modifier
@@ -73,6 +75,7 @@ fun HomeContent(innerPadding: PaddingValues) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+
             // Logo SEBOOK
             Image(
                 painter = painterResource(id = R.drawable.logo_sebook),
@@ -93,21 +96,46 @@ fun HomeContent(innerPadding: PaddingValues) {
                     verticalArrangement = Arrangement.Center,
                     modifier = Modifier.padding(end = 8.dp)
                 ) {
-                    Text(
-                        text = "Pengguna",
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 13.sp,
-                        color = Color.Black,
-                        textAlign = TextAlign.End
-                    )
+                    // Notification Button with Badge
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        Box {
+                            IconButton(
+                                onClick = { navController.navigate("notifications") },
+                                modifier = Modifier.size(45.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_notification),
+                                    contentDescription = "Notifications",
+                                    modifier = Modifier.size(28.dp),
+                                    tint = Color.Black
+                                )
+                            }
 
-                    Text(
-                        text = "Lihat Profil",
-                        color = Color(0xFF6B8E7F),
-                        fontSize = 10.sp,
-                        textAlign = TextAlign.End,
-                        modifier = Modifier.clickable { /* Navigate to profile */ }
-                    )
+                            // Badge notifikasi (contoh state sementara)
+                            val notificationCount by remember { mutableStateOf(5) }
+                            if (notificationCount > 0) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(20.dp)
+                                        .align(Alignment.TopEnd)
+                                        .offset(x = (-4).dp, y = 4.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFFFF3B30)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = if (notificationCount > 9) "9+" else notificationCount.toString(),
+                                        color = Color.White,
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
 
                 // Profile Image
@@ -116,7 +144,9 @@ fun HomeContent(innerPadding: PaddingValues) {
                     contentDescription = "Profile Image",
                     modifier = Modifier
                         .size(45.dp)
-                        .clip(CircleShape),
+                        .clip(CircleShape)
+                        .border(2.dp, Color(0xFFF96300), CircleShape)
+                        .clickable { navController.navigate("profile") },
                     contentScale = ContentScale.Crop
                 )
             }
@@ -130,9 +160,6 @@ fun HomeContent(innerPadding: PaddingValues) {
                 .fillMaxWidth()
                 .height(200.dp)
         ) {
-            // Curved Image in front (Rectangle_2 background)
-
-            // Card in front of the background (this will appear in front of the rectangle image)
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -142,7 +169,6 @@ fun HomeContent(innerPadding: PaddingValues) {
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Box(modifier = Modifier.fillMaxSize()) {
-                    // Banner Image (you can replace this with other image or leave as is)
                     Image(
                         painter = painterResource(id = R.drawable.profile_placeholder),
                         contentDescription = "Welcome Banner",
@@ -150,7 +176,7 @@ fun HomeContent(innerPadding: PaddingValues) {
                         modifier = Modifier.fillMaxSize()
                     )
                     Image(
-                        painter = painterResource(id = R.drawable.rectangle_2), // Curved background
+                        painter = painterResource(id = R.drawable.rectangle_2),
                         contentDescription = "Curved Background",
                         contentScale = ContentScale.FillWidth,
                         alignment = Alignment.TopCenter,
@@ -160,13 +186,8 @@ fun HomeContent(innerPadding: PaddingValues) {
                             .align(Alignment.TopCenter)
                     )
 
-                    // Overlay with Text and Button
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                    )
+                    Box(modifier = Modifier.fillMaxSize())
 
-                    // Welcome Text
                     Column(
                         modifier = Modifier
                             .align(Alignment.BottomStart)
@@ -193,25 +214,22 @@ fun HomeContent(innerPadding: PaddingValues) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // User's Name (Nama Pengguna)
             Text(
-                text = "Pengguna",  // Replace with dynamic username
+                text = "Pengguna",
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 26.sp,
                 color = Color.Black,
                 modifier = Modifier.padding(start = 12.dp)
             )
 
-            // Move the button down using the custom ButtonComponent
             Column(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 CustomButton(
                     text = "Booking",
-                    onClick = { /* Navigate to booking */ },
-                    modifier = Modifier
-                        .padding(top = 12.dp)
+                    onClick = { navController.navigate("booking") },
+                    modifier = Modifier.padding(top = 12.dp)
                 )
             }
         }
@@ -237,38 +255,41 @@ fun HomeContent(innerPadding: PaddingValues) {
                 text = "Selengkapnya",
                 fontSize = 13.sp,
                 color = Color(0xFF6B8E7F),
-                modifier = Modifier.clickable { /* Navigate to all rooms */ }
+                modifier = Modifier.clickable { navController.navigate("information") }
             )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Room Cards Carousel
-        LazyRow(
-            state = listState,  // Terapkan LazyListState untuk mendeteksi scroll
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            items(3) { index ->
-                RoomCard(
-                    roomName = when (index) {
-                        0 -> "Ruang Rapat Besar"
-                        1 -> "Ruang Seminar"
-                        2 -> "Ruang Kelas"
-                        else -> "Ruang Lain"
-                    },
-                    onClick = { currentSlide = index },
-                    imageResourceId = when (index) {
-                        0 -> R.drawable.room_1
-                        1 -> R.drawable.room_2
-                        2 -> R.drawable.room_3
-                        else -> R.drawable.room_default
-                    }
-                )
+        HorizontalPager(
+            state = pagerState,
+            contentPadding = PaddingValues(horizontal = 20.dp),
+            pageSpacing = 16.dp,
+            modifier = Modifier.fillMaxWidth()
+        ) { page ->
+            val pageOffset = (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction
+            val scale = lerp(
+                start = 0.85f,
+                stop = 1f,
+                fraction = 1f - pageOffset.absoluteValue.coerceIn(0f, 1f)
+            )
+
+            val (roomName, roomKey, imageRes) = when (page) {
+                0 -> Triple("Ruang Ampliteather", "ampliteather", R.drawable.amplifier_1)
+                1 -> Triple("Ruang Tengah", "tengah", R.drawable.tengah_2)
+                2 -> Triple("Ruang Outdor", "outdor", R.drawable.belakang_1)
+                else -> Triple("Ruang Ampliteather", "ampliteather", R.drawable.amplifier_1)
             }
+
+            RoomCard(
+                roomName = roomName,
+                onClick = { navController.navigate("detail_ruangan/$roomKey") },
+                imageResourceId = imageRes,
+                scale = scale
+            )
         }
 
-        // Pagination Dots
+        Spacer(modifier = Modifier.height(16.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
@@ -277,10 +298,10 @@ fun HomeContent(innerPadding: PaddingValues) {
                 Box(
                     modifier = Modifier
                         .padding(horizontal = 4.dp)
-                        .size(if (currentSlide == index) 10.dp else 8.dp)
+                        .size(if (pagerState.currentPage == index) 10.dp else 8.dp)
                         .clip(CircleShape)
                         .background(
-                            if (currentSlide == index) Color(0xFFFF8C00)
+                            if (pagerState.currentPage == index) Color(0xFFFF8C00)
                             else Color(0xFFD9D9D9)
                         )
                 )
@@ -295,7 +316,8 @@ fun HomeContent(innerPadding: PaddingValues) {
 fun RoomCard(
     roomName: String,
     onClick: () -> Unit,
-    imageResourceId: Int
+    imageResourceId: Int,
+    scale: Float = 1f
 ) {
     Column(
         modifier = Modifier
@@ -306,8 +328,12 @@ fun RoomCard(
     ) {
         Card(
             modifier = Modifier
-                .width(320.dp)
+                .fillMaxWidth()
                 .height(240.dp)
+                .graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                }
                 .clickable { onClick() },
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White)

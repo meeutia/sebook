@@ -3,6 +3,7 @@ package com.example.sebook.ui.theme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.typography
 import com.example.sebook.R
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -16,10 +17,10 @@ import androidx.compose.ui.unit.sp
 
 // Light Theme Colors
 private val LightColorScheme = lightColorScheme(
-    primary = GreenWave,
-    onPrimary = OnGreenWave,
-    secondary = OrangeButton,
-    onSecondary = OnOrangeButton,
+//    primary = GreenWave,
+//    onPrimary = OnGreenWave,
+//    secondary = OrangeButton,
+//    onSecondary = OnOrangeButton,
     background = Color.White,
     onBackground = Color.Black,
     surface = Color(0xFFFAFAFA),
@@ -28,10 +29,10 @@ private val LightColorScheme = lightColorScheme(
 
 // Dark Theme Colors
 private val DarkColorScheme = darkColorScheme(
-    primary = GreenWave,
-    onPrimary = OnGreenWave,
-    secondary = OrangeButton,
-    onSecondary = OnOrangeButton,
+//    primary = GreenWave,
+//    onPrimary = OnGreenWave,
+//    secondary = OrangeButton,
+//    onSecondary = OnOrangeButton,
     background = Color(0xFF121212),
     onBackground = Color(0xFFE6E1E5),
     surface = Color(0xFF121212),

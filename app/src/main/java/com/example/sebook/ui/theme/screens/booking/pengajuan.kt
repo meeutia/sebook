@@ -38,7 +38,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.ui.text.input.ImeAction
 import com.example.sebook.R
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CloudUpload
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
@@ -91,9 +93,10 @@ private fun BarangDropdown(
         )
         Box(
             modifier = Modifier
-//                .matchParentSize()
-                .padding(end = 12.dp),
-            contentAlignment = Alignment.CenterEnd
+                .fillMaxWidth() // Pastikan Box memenuhi lebar kontainer
+                .offset(y = 24.dp)
+                .padding(end = 12.dp), // Menambahkan sedikit ruang di kanan
+            contentAlignment = Alignment.CenterEnd // Posisi ikon di kanan
         ) {
             Icon(
                 imageVector = Icons.Outlined.KeyboardArrowDown,
@@ -211,15 +214,17 @@ fun BookingFormScreen(
             .fillMaxSize()
             .background(Color.White)
     ) {
+        val scrollState = rememberScrollState()
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp),
+                .padding(horizontal = 24.dp)
+                .verticalScroll(scrollState),
             horizontalAlignment = Alignment.Start
         ) {
 
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(48.dp))
             SectionTitle("Isi Pengajuan Peminjaman")
 
             // Nama Penanggung Jawab

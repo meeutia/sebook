@@ -136,11 +136,12 @@ fun Regist(onRegisterClick: () -> Unit) {
 
             // Password Field
             CustomTextField(
-                value = "",
-                onValueChange = {},
+                value = password,
+                onValueChange = { password = it },
                 label = "Password",
                 placeholder = "minimal 8 karakter",
-                isPassword = true
+                isPassword = true,
+                imeAction = ImeAction.Done
             )
 
             Spacer(modifier = Modifier.height(74.dp))

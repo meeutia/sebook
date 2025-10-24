@@ -66,5 +66,7 @@ dependencies {
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("com.github.mhiew:android-pdf-viewer:3.2.0-beta.3")
     implementation("com.google.accompanist:accompanist-pager:0.24.9-beta")
-// Use the stable version
+    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.coil.compose)
 }

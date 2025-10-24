@@ -43,6 +43,9 @@ import androidx.compose.material3.DatePickerDefaults.dateFormatter
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import com.example.sebook.ui.theme.components.CustomButton
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.draw.clip
 
 data class BookingInfo(
     val day: Int,
@@ -52,7 +55,7 @@ data class BookingInfo(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BookingScreen(navController: NavController) {
+fun BookingScreen(navController: NavController, selectable: Boolean = true) {
     var currentCalendar by remember { mutableStateOf(Calendar.getInstance()) }
     var selectedDate by remember { mutableStateOf<Int?>(null) }
 
@@ -77,7 +80,7 @@ fun BookingScreen(navController: NavController) {
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        "Detail Ruangan",
+                        "Jadwal",
                         fontFamily = FontFamily(Font(R.font.poppins_extrabold)),
                         fontSize = 18.sp
                     )
@@ -104,6 +107,7 @@ fun BookingScreen(navController: NavController) {
                     .padding(paddingValues)
                     .padding(26.dp)
                     .background(Color.White)
+                    .verticalScroll(rememberScrollState())
 
             ) {
                 // Month Selector
@@ -174,35 +178,50 @@ fun BookingScreen(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Calendar Grid
+                // Calendar Grid (square cells that fit the width)
                 val daysInMonth = getDaysInMonthWithCalendar(currentCalendar)
-
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(7),
-                    contentPadding = PaddingValues(4.dp),
-                    modifier = Modifier.fillMaxWidth()
+                val rows = (daysInMonth.size + 6) / 7
+                Column(modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp)
                 ) {
-                    items(daysInMonth.size) { index ->
-                        val day = daysInMonth[index]
-                        if (day > 0) {
-                            DayCell(
-                                day = day,
-                                isBooked = bookedDates.value.contains(day),
-                                isSelected = selectedDate == day,
-                                onClick = {
-                                    if (!bookedDates.value.contains(day)) {
-                                        selectedDate = day
+                    repeat(rows) { r ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            repeat(7) { c ->
+                                val index = r * 7 + c
+                                val day = if (index < daysInMonth.size) daysInMonth[index] else 0
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .aspectRatio(1f)
+                                        .padding(vertical = 2.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (day > 0) {
+                                        DayCell(
+                                            day = day,
+                                            isBooked = bookedDates.value.contains(day),
+                                            isSelected = selectedDate == day,
+                                            selectable = selectable,
+                                            onClick = {
+                                                if (selectable && !bookedDates.value.contains(day)) {
+                                                    selectedDate = day
+                                                }
+                                            },
+                                            modifier = Modifier.fillMaxSize()
+                                        )
                                     }
                                 }
-                            )
-                        } else {
-                            // Empty cell for alignment
-                            Box(modifier = Modifier.size(48.dp))
+                            }
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // Legend
                 Row(
@@ -213,6 +232,18 @@ fun BookingScreen(navController: NavController) {
                     LegendItem(color = Color(0xFFF0F5F0), text = "Tersedia")
                     LegendItem(color = Color(0xFFFF8C00), text = "Dipilih")
                 }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Button directly below the calendar, before the title list
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    CustomButton(
+                        text = "Lanjut",
+                        onClick = {navController.navigate("form")},
+                        fontSize = 13.sp
+                    )
+                }
+
 
                 Spacer(modifier = Modifier.height(24.dp))
 
@@ -232,18 +263,8 @@ fun BookingScreen(navController: NavController) {
                     Spacer(modifier = Modifier.height(8.dp))
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(12.dp)) }
 
-                CustomButton(
-                    text = "Ajukan Booking",
-                    onClick = {
-
-                    },
-                    modifier = Modifier
-                        .align(Alignment.End), // Align the button to the bottom right ,
-                    fontSize = 13.sp
-                )
-            }
         }
     )
 }
@@ -303,7 +324,14 @@ fun BookingInfoCard(bookingInfo: BookingInfo) {
 }
 
 @Composable
-fun DayCell(day: Int, isBooked: Boolean, isSelected: Boolean, onClick: () -> Unit) {
+fun DayCell(
+    day: Int,
+    isBooked: Boolean,
+    isSelected: Boolean,
+    selectable: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val backgroundColor = when {
         isBooked -> Color(0xFF6B8E7F)
         isSelected -> Color(0xFFFF8C00)
@@ -312,11 +340,10 @@ fun DayCell(day: Int, isBooked: Boolean, isSelected: Boolean, onClick: () -> Uni
     val textColor = if (isBooked || isSelected) Color.White else Color.Black
 
     Box(
-        modifier = Modifier
-            .size(48.dp)
-            .padding(4.dp)
-            .background(backgroundColor, CircleShape)
-            .clickable(enabled = !isBooked, onClick = onClick),
+        modifier = modifier
+            .clip(CircleShape)
+            .background(backgroundColor)
+            .clickable(enabled = selectable && !isBooked, onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         Text(
